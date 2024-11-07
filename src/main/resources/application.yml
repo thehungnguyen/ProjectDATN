@@ -1,0 +1,11 @@
+server:
+  port: 8088  # C?ng cho ?ng d?ng Spring Boot
+
+spring:
+  application:
+    name: be
+  data:
+    mongodb:
+      uri: mongodb://admin:admin123@localhost:27017/MongoDB-DATN?authSource=admin  # K?t n?i MongoDB
+  elasticsearch:
+    uris: http://localhost_datn:9200  # K?t n?i Elasticsearch

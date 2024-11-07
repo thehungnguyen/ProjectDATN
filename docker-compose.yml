@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    container_name: elasticsearch_datn
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+
+  logstash:
+    image: logstash:7.17.9
+    container_name: logstash_datn
+    volumes:
+      - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf # Cấu hình Logstash
+      - ./data:/usr/share/logstash/data # Thư mục chứa file CSV
+    ports:
+      - "5044:5044"  # Logstash lắng nghe cổng 5044 từ bên ngoài
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: kibana:7.17.9
+    container_name: kibana_datn
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch_datn:9200
+    ports:
+      - "5601:5601"  # Kibana lắng nghe cổng 5602 từ bên ngoài
+    depends_on:
+      - elasticsearch
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_datn
+    environment:
+      - MONGO_INITDB_DATABASE=MongoDB-DATN
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+    ports:
+      - "27017:27017"
+
+#  filebeat:
+#    image: docker.elastic.co/beats/filebeat:8.7.1  # Phiên bản Filebeat
+#    container_name: filebeat_datn
+#    volumes:
+#      - ./elk/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro  # Đường dẫn tương đối đến filebeat.yml
+#      - ./logs:/usr/share/filebeat/log  # Đường dẫn tới thư mục log
+#      - ./data:/usr/share/filebeat/data  # Đường dẫn tới thư mục chứa file CSV
+#    command: ["filebeat", "-e", "-strict.perms=false", "-c", "/usr/share/filebeat/filebeat.yml"]
+#    depends_on:
+#      - logstash
