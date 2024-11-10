@@ -1,11 +1,21 @@
 server:
-  port: 8088  # C?ng cho ?ng d?ng Spring Boot
+  port: 8088  # Port app Spring Boot
 
 spring:
   application:
     name: be
   data:
     mongodb:
-      uri: mongodb://admin:admin123@localhost:27017/MongoDB-DATN?authSource=admin  # K?t n?i MongoDB
+      uri: mongodb://admin:admin123@localhost:27017/MongoDB-DATN?authSource=admin  # Connect MongoDB
+    elasticsearch:
+      cluster-nodes: elasticsearch:9200
+      cluster-name: docker-cluster
   elasticsearch:
-    uris: http://localhost_datn:9200  # K?t n?i Elasticsearch
+    uris: http://localhost:9200  # Connect Elasticsearch
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-doc:
+    path: /api-doc
+  show-actuator: true
