@@ -1,4 +1,4 @@
-package com.datn.be.model.entity.es;
+package com.datn.be.elasticsearch.model.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -11,49 +11,50 @@ import java.time.LocalDate;
 @Data
 @Document(indexName = "sales-records")
 public class SalesRecordES {
+
     @Id
     private String id;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, name = "Region")
     private String region;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, name = "Country")
     private String country;
 
-    @Field(type = FieldType.Text, name = "item_type")
+    @Field(type = FieldType.Text, name = "Item Type")
     private String itemType;
 
-    @Field(type = FieldType.Text, name = "sales_channel")
+    @Field(type = FieldType.Text, name = "Sales Channel")
     private String salesChannel;
 
-    @Field(type = FieldType.Text, name = "order_priority")
+    @Field(type = FieldType.Text, name = "Order Priority")
     private String orderPriority;
 
-    @Field(type = FieldType.Date, name = "order_date")
+    @Field(type = FieldType.Date, name = "Order Date", format = {}, pattern = "MM/dd/yyyy")
     private LocalDate orderDate;
 
-    @Field(type = FieldType.Keyword, name = "order_id")
-    private String orderId;
+    @Field(type = FieldType.Keyword, name = "Order ID")
+    private String orderID;
 
-    @Field(type = FieldType.Date, name = "ship_date")
+    @Field(type = FieldType.Date, name = "Ship Date", format = {}, pattern = "MM/dd/yyyy")
     private LocalDate shipDate;
 
-    @Field(type = FieldType.Integer, name = "units_sold")
+    @Field(type = FieldType.Integer, name = "Units Sold")
     private Integer unitsSold;
 
-    @Field(type = FieldType.Double, name = "unit_price")
+    @Field(type = FieldType.Double, name = "Unit Price")
     private Double unitPrice;
 
-    @Field(type = FieldType.Double, name = "unit_cost")
+    @Field(type = FieldType.Double, name = "Unit Cost")
     private Double unitCost;
 
-    @Field(type = FieldType.Double, name = "total_revenue")
+    @Field(type = FieldType.Double, name = "Total Revenue")
     private Double totalRevenue;
 
-    @Field(type = FieldType.Double, name = "total_cost")
+    @Field(type = FieldType.Double, name = "Total Cost")
     private Double totalCost;
 
-    @Field(type = FieldType.Double, name = "total_profit")
+    @Field(type = FieldType.Double, name = "Total Profit")
     private Double totalProfit;
 
     // Phương thức tính toán doanh thu

@@ -1,19 +1,19 @@
-package com.datn.be.serivce.es;
+package com.datn.be.elasticsearch.service;
 
 import com.datn.be.model.dto.request.SalesRecordRequest;
 import com.datn.be.model.dto.response.SalesRecordResponse;
-import com.datn.be.model.entity.es.SalesRecordES;
-import com.datn.be.repository.es.SalesRecordESRepository;
+import com.datn.be.elasticsearch.model.entity.SalesRecordES;
+import com.datn.be.elasticsearch.repository.SalesRecordESRepository;
 import lombok.RequiredArgsConstructor;
-import org.elasticsearch.index.query.FuzzyQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -23,6 +23,7 @@ public class SalesRecordESService {
 
     private final SalesRecordESRepository repository;
     private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private final Pageable pageable = PageRequest.of(0, 10);  // Giới hạn 5 bản ghi
 
     // Tạo SalesRecord cho Elasticsearch
     public ResponseEntity<SalesRecordResponse> saveSalesRecord(SalesRecordRequest request) {
@@ -62,6 +63,96 @@ public class SalesRecordESService {
         }
     }
 
+    // Tìm kiếm thông qua trường OrderId
+    public ResponseEntity<SalesRecordResponse> getByOrderID(String id) {
+        List<SalesRecordES> records = repository.findByOrderID(id);
+        if (!records.isEmpty()) {
+            SalesRecordES existsRecord = records.stream()
+                    .filter(s -> s.getOrderID().equals(id))
+                    .findFirst()
+                    .orElseThrow(null);
+
+            return ResponseEntity.ok(buildResponse(existsRecord));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // Tìm kiếm theo Country
+    public ResponseEntity<List<SalesRecordResponse>> getByCountry(String country) {
+
+        List<SalesRecordES> records = repository.findByCountry(country, pageable);
+        if (!records.isEmpty()) {
+            List<SalesRecordResponse> responseList = records.stream()
+                    .map(this::buildResponse)
+                    .toList();
+
+            return ResponseEntity.ok(responseList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // Tìm kiếm theo ItemType
+    public ResponseEntity<List<SalesRecordResponse>> getByItemType(String itemType) {
+        List<SalesRecordES> records = repository.findByItemType(itemType, pageable);
+        if (!records.isEmpty()) {
+            List<SalesRecordResponse> responseList = records.stream()
+                    .map(this::buildResponse)
+                    .toList();
+
+            return ResponseEntity.ok(responseList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // Tìm kiếm theo Country và Item Type
+    public ResponseEntity<List<SalesRecordResponse>> getByCountryAndItemType(String country, String itemType) {
+        List<SalesRecordES> records = repository.findByCountryAndItemType(country, itemType, pageable);
+        if (!records.isEmpty()) {
+            List<SalesRecordResponse> responseList = records.stream()
+                    .map(this::buildResponse)
+                    .toList();
+
+            return ResponseEntity.ok(responseList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // Tìm kiếm theo Order Date trong khoảng và giới hạn số lượng trả về là 5
+    public ResponseEntity<List<SalesRecordResponse>> getByOrderDateBetween(String startDate, String endDate) {
+        LocalDate start = LocalDate.parse(startDate, FORMATTER);
+        LocalDate end = LocalDate.parse(endDate, FORMATTER);
+        List<SalesRecordES> records = repository.findByOrderDateBetween(start, end, pageable);
+        if (!records.isEmpty()) {
+            List<SalesRecordResponse> responseList = records.stream()
+                    .map(this::buildResponse)
+                    .toList();
+
+            return ResponseEntity.ok(responseList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // Tìm kiếm theo Ship Date trong khoảng và giới hạn số lượng trả về là 5
+    public ResponseEntity<List<SalesRecordResponse>> getByShipDateBetween(String startDate, String endDate) {
+        LocalDate start = LocalDate.parse(startDate, FORMATTER);
+        LocalDate end = LocalDate.parse(endDate, FORMATTER);
+        List<SalesRecordES> records = repository.findByShipDateBetween(start, end, pageable);
+        if (!records.isEmpty()) {
+            List<SalesRecordResponse> responseList = records.stream()
+                    .map(this::buildResponse)
+                    .toList();
+
+            return ResponseEntity.ok(responseList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     private SalesRecordES build(SalesRecordRequest request) {
         SalesRecordES newRecord = new SalesRecordES();
 
@@ -71,13 +162,11 @@ public class SalesRecordESService {
         newRecord.setSalesChannel(request.getSalesChannel());
         newRecord.setOrderPriority(request.getOrderPriority());
 
-        LocalDate orderDate = LocalDate.parse(request.getOrderDate(), FORMATTER);
-        newRecord.setOrderDate(orderDate);
+        newRecord.setOrderDate(parseDate(request.getOrderDate()));
 
-        newRecord.setOrderId(generOrderId());
+        newRecord.setOrderID(generOrderId());
 
-        LocalDate shipDate = LocalDate.parse(request.getShipDate(), FORMATTER);
-        newRecord.setShipDate(shipDate);
+        newRecord.setShipDate(parseDate(request.getShipDate()));
 
         newRecord.setUnitsSold(request.getUnitsSold());
         newRecord.setUnitPrice(request.getUnitPrice());
@@ -97,11 +186,8 @@ public class SalesRecordESService {
         existsRecord.setSalesChannel(request.getSalesChannel());
         existsRecord.setOrderPriority(request.getOrderPriority());
 
-        LocalDate orderDate = LocalDate.parse(request.getOrderDate(), FORMATTER);
-        existsRecord.setOrderDate(orderDate);
-
-        LocalDate shipDate = LocalDate.parse(request.getShipDate(), FORMATTER);
-        existsRecord.setShipDate(shipDate);
+        existsRecord.setOrderDate(parseDate(request.getOrderDate()));
+        existsRecord.setShipDate(parseDate(request.getShipDate()));
 
         existsRecord.setUnitsSold(request.getUnitsSold());
         existsRecord.setUnitPrice(request.getUnitPrice());
@@ -117,11 +203,12 @@ public class SalesRecordESService {
                 .id(existsRecord.getId())
                 .region(existsRecord.getRegion())
                 .country(existsRecord.getCountry())
+                .itemType(existsRecord.getItemType())
                 .salesChannel(existsRecord.getSalesChannel())
                 .orderPriority(existsRecord.getOrderPriority())
-                .orderDate(String.valueOf(existsRecord.getOrderDate()))
-                .orderId(existsRecord.getOrderId())
-                .shipDate(String.valueOf(existsRecord.getShipDate()))
+                .orderDate(existsRecord.getOrderDate().format(FORMATTER))
+                .orderId(existsRecord.getOrderID())
+                .shipDate(existsRecord.getShipDate().format(FORMATTER))
                 .unitsSold(existsRecord.getUnitsSold())
                 .unitPrice(existsRecord.getUnitPrice())
                 .unitCost(existsRecord.getUnitCost())
@@ -129,6 +216,10 @@ public class SalesRecordESService {
                 .totalCost(existsRecord.getTotalCost())
                 .totalProfit(existsRecord.getTotalProfit())
                 .build();
+    }
+
+    private LocalDate parseDate(String date) {
+        return LocalDate.parse(date, FORMATTER);
     }
 
     private String generOrderId() {
