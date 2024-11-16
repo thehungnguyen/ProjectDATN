@@ -42,14 +42,3 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=admin123
     ports:
       - "27017:27017"
-
-#  filebeat:
-#    image: docker.elastic.co/beats/filebeat:8.7.1  # Phiên bản Filebeat
-#    container_name: filebeat_datn
-#    volumes:
-#      - ./elk/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro  # Đường dẫn tương đối đến filebeat.yml
-#      - ./logs:/usr/share/filebeat/log  # Đường dẫn tới thư mục log
-#      - ./data:/usr/share/filebeat/data  # Đường dẫn tới thư mục chứa file CSV
-#    command: ["filebeat", "-e", "-strict.perms=false", "-c", "/usr/share/filebeat/filebeat.yml"]
-#    depends_on:
-#      - logstash

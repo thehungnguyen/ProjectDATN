@@ -5,15 +5,28 @@ import com.datn.be.model.dto.response.SalesRecordResponse;
 import com.datn.be.elasticsearch.model.entity.SalesRecordES;
 import com.datn.be.elasticsearch.repository.SalesRecordESRepository;
 import lombok.RequiredArgsConstructor;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -25,7 +38,7 @@ public class SalesRecordESService {
     private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     private final Pageable pageable = PageRequest.of(0, 10);  // Giới hạn 5 bản ghi
 
-    // Tạo SalesRecord cho Elasticsearch
+    // Create
     public ResponseEntity<SalesRecordResponse> saveSalesRecord(SalesRecordRequest request) {
         SalesRecordES newRecord = build(request);
         repository.save(newRecord);
@@ -34,7 +47,7 @@ public class SalesRecordESService {
         return ResponseEntity.ok(buildResponse(newRecord));
     }
 
-    // Cập nhật SalesRecord cho Elasticsearch
+    // Update
     public ResponseEntity<SalesRecordResponse> updateSalesRecord(String id, SalesRecordRequest request) {
         Optional<SalesRecordES> salesRecordESOptional = repository.findById(id);
         if (salesRecordESOptional.isPresent()) {
@@ -50,7 +63,7 @@ public class SalesRecordESService {
         }
     }
 
-    // Xóa SalesRecord theo ID trong Elasticsearch
+    // Delete
     public ResponseEntity<String> deleteSalesRecord(String id) {
         Optional<SalesRecordES> salesRecordESOptional = repository.findById(id);
         if (salesRecordESOptional.isPresent()) {
@@ -63,49 +76,49 @@ public class SalesRecordESService {
         }
     }
 
-    // Tìm kiếm thông qua trường OrderId
-    public ResponseEntity<SalesRecordResponse> getByOrderID(String id) {
-        List<SalesRecordES> records = repository.findByOrderID(id);
-        if (!records.isEmpty()) {
-            SalesRecordES existsRecord = records.stream()
-                    .filter(s -> s.getOrderID().equals(id))
-                    .findFirst()
-                    .orElseThrow(null);
-
-            return ResponseEntity.ok(buildResponse(existsRecord));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    // Tìm kiếm theo Country
-    public ResponseEntity<List<SalesRecordResponse>> getByCountry(String country) {
-
-        List<SalesRecordES> records = repository.findByCountry(country, pageable);
-        if (!records.isEmpty()) {
-            List<SalesRecordResponse> responseList = records.stream()
-                    .map(this::buildResponse)
-                    .toList();
-
-            return ResponseEntity.ok(responseList);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    // Tìm kiếm theo ItemType
-    public ResponseEntity<List<SalesRecordResponse>> getByItemType(String itemType) {
-        List<SalesRecordES> records = repository.findByItemType(itemType, pageable);
-        if (!records.isEmpty()) {
-            List<SalesRecordResponse> responseList = records.stream()
-                    .map(this::buildResponse)
-                    .toList();
-
-            return ResponseEntity.ok(responseList);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
+//    // Tìm kiếm thông qua trường OrderId
+//    public ResponseEntity<SalesRecordResponse> getByOrderId(String id) {
+//        List<SalesRecordES> records = repository.findByOrderId(id);
+//        if (!records.isEmpty()) {
+//            SalesRecordES existsRecord = records.stream()
+//                    .filter(s -> s.getOrderId().equals(id))
+//                    .findFirst()
+//                    .orElseThrow(null);
+//
+//            return ResponseEntity.ok(buildResponse(existsRecord));
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//    }
+//
+//    // Tìm kiếm theo Country
+//    public ResponseEntity<List<SalesRecordResponse>> getByCountry(String country) {
+//
+//        List<SalesRecordES> records = repository.findByCountry(country, pageable);
+//        if (!records.isEmpty()) {
+//            List<SalesRecordResponse> responseList = records.stream()
+//                    .map(this::buildResponse)
+//                    .toList();
+//
+//            return ResponseEntity.ok(responseList);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//    }
+//
+//    // Tìm kiếm theo ItemType
+//    public ResponseEntity<List<SalesRecordResponse>> getByItemType(String itemType) {
+//        List<SalesRecordES> records = repository.findByItemType(itemType, pageable);
+//        if (!records.isEmpty()) {
+//            List<SalesRecordResponse> responseList = records.stream()
+//                    .map(this::buildResponse)
+//                    .toList();
+//
+//            return ResponseEntity.ok(responseList);
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//    }
 
     // Tìm kiếm theo Country và Item Type
     public ResponseEntity<List<SalesRecordResponse>> getByCountryAndItemType(String country, String itemType) {
@@ -153,6 +166,7 @@ public class SalesRecordESService {
         }
     }
 
+    // Build model
     private SalesRecordES build(SalesRecordRequest request) {
         SalesRecordES newRecord = new SalesRecordES();
 
@@ -164,7 +178,7 @@ public class SalesRecordESService {
 
         newRecord.setOrderDate(parseDate(request.getOrderDate()));
 
-        newRecord.setOrderID(generOrderId());
+        newRecord.setOrderId(generOrderId());
 
         newRecord.setShipDate(parseDate(request.getShipDate()));
 
@@ -179,6 +193,7 @@ public class SalesRecordESService {
         return newRecord;
     }
 
+    // Modify model
     private void update(SalesRecordES existsRecord, SalesRecordRequest request) {
         existsRecord.setRegion(request.getRegion());
         existsRecord.setCountry(request.getCountry());
@@ -198,6 +213,7 @@ public class SalesRecordESService {
         existsRecord.calculateTotalProfit();
     }
 
+    // Build response
     private SalesRecordResponse buildResponse(SalesRecordES existsRecord) {
         return SalesRecordResponse.builder()
                 .id(existsRecord.getId())
@@ -207,7 +223,7 @@ public class SalesRecordESService {
                 .salesChannel(existsRecord.getSalesChannel())
                 .orderPriority(existsRecord.getOrderPriority())
                 .orderDate(existsRecord.getOrderDate().format(FORMATTER))
-                .orderId(existsRecord.getOrderID())
+                .orderId(existsRecord.getOrderId())
                 .shipDate(existsRecord.getShipDate().format(FORMATTER))
                 .unitsSold(existsRecord.getUnitsSold())
                 .unitPrice(existsRecord.getUnitPrice())
@@ -218,10 +234,12 @@ public class SalesRecordESService {
                 .build();
     }
 
+    // Convert form to LocalDate
     private LocalDate parseDate(String date) {
         return LocalDate.parse(date, FORMATTER);
     }
 
+    // Generate OrderId
     private String generOrderId() {
         Random random = new Random();
         return String.format("%09d", random.nextInt(1_000_000_000)); // Tạo số ngẫu nhiên 9 chữ số

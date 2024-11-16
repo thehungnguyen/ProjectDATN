@@ -2,6 +2,7 @@ package com.datn.be.elasticsearch.repository;
 
 import com.datn.be.elasticsearch.model.entity.SalesRecordES;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 
 import java.time.LocalDate;
@@ -11,7 +12,7 @@ public interface SalesRecordESRepository extends ElasticsearchRepository<SalesRe
     // Truy vấn tìm theo 1 trường: Country hoặc Order ID hoặc Item Type
     List<SalesRecordES> findByCountry(String country, Pageable pageable);
 
-    List<SalesRecordES> findByOrderID(String orderID);
+    List<SalesRecordES> findByOrderId(String orderId);
 
     List<SalesRecordES> findByItemType(String itemType, Pageable pageable);
 
@@ -22,5 +23,9 @@ public interface SalesRecordESRepository extends ElasticsearchRepository<SalesRe
     List<SalesRecordES> findByOrderDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     List<SalesRecordES> findByShipDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+    // Match Query
+    @Query("{\"match\": {\"itemType\": \"?0\"}}")
+    List<SalesRecordES> findByItemType(String itemType);
 
 }

@@ -67,10 +67,10 @@ public class SalesRecordMDBService {
 
     // Get SaleRecord by OrderID
     public ResponseEntity<SalesRecordResponse> getByOrderID(String id) {
-        List<SalesRecordMDB> records = repository.findByOrderID(id);
+        List<SalesRecordMDB> records = repository.findByOrderId(id);
         if (!records.isEmpty()) {
             SalesRecordMDB existsRecord = records.stream()
-                    .filter(s -> s.getOrderID().equals(id))
+                    .filter(s -> s.getOrderId().equals(id))
                     .findFirst()
                     .orElseThrow(null);
 
@@ -163,7 +163,7 @@ public class SalesRecordMDBService {
         newRecord.setOrderPriority(request.getOrderPriority());
 
         newRecord.setOrderDate(parseDate(request.getOrderDate()));
-        newRecord.setOrderID(generOrderId());
+        newRecord.setOrderId(generOrderId());
         newRecord.setShipDate(parseDate(request.getShipDate()));
 
         newRecord.setUnitsSold(request.getUnitsSold());
@@ -205,7 +205,7 @@ public class SalesRecordMDBService {
                 .salesChannel(existsRecord.getSalesChannel())
                 .orderPriority(existsRecord.getOrderPriority())
                 .orderDate(formatDate(existsRecord.getOrderDate()))
-                .orderId(existsRecord.getOrderID())
+                .orderId(existsRecord.getOrderId())
                 .shipDate(formatDate(existsRecord.getShipDate()))
                 .unitsSold(existsRecord.getUnitsSold())
                 .unitPrice(existsRecord.getUnitPrice())

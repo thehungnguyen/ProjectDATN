@@ -11,7 +11,7 @@ public interface SalesRecordMDBRepository extends MongoRepository<SalesRecordMDB
     // Truy vấn tìm theo 1 trường: Country hoặc Order ID hoặc Item Type
     List<SalesRecordMDB> findByCountry(String country, Pageable pageable);
 
-    List<SalesRecordMDB> findByOrderID(String orderID);
+    List<SalesRecordMDB> findByOrderId(String orderId);
 
     List<SalesRecordMDB> findByItemType(String itemType, Pageable pageable);
 

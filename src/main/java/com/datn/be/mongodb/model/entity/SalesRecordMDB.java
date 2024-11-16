@@ -13,46 +13,46 @@ public class SalesRecordMDB {
     @Id
     private String id;
 
-    @Field("Region")
+    @Field("region")
     private String region;
 
-    @Field("Country")
+    @Field("country")
     private String country;
 
-    @Field("Item Type")
+    @Field("itemType")
     private String itemType;
 
-    @Field("Sales Channel")
+    @Field("salesChannel")
     private String salesChannel;
 
-    @Field("Order Priority")
+    @Field("orderPriority")
     private String orderPriority;
 
-    @Field("Order Date")
+    @Field("orderDate")
     private LocalDate orderDate;
 
-    @Field("Order ID")
-    private String orderID;
+    @Field("orderId")
+    private String orderId;
 
-    @Field("Ship Date")
+    @Field("shipDate")
     private LocalDate shipDate;
 
-    @Field("Units Sold")
+    @Field("unitsSold")
     private Integer unitsSold;
 
-    @Field("Unit Price")
+    @Field("unitPrice")
     private Double unitPrice;
 
-    @Field("Unit Cost")
+    @Field("unitCost")
     private Double unitCost;
 
-    @Field("Total Revenue")
+    @Field("totalRevenue")
     private Double totalRevenue;
 
-    @Field("Total Cost")
+    @Field("totalCost")
     private Double totalCost;
 
-    @Field("Total Profit")
+    @Field("totalProfit")
     private Double totalProfit;
 
     // Phương thức tính toán doanh thu
