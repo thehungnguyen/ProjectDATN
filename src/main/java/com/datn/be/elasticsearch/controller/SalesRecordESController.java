@@ -1,5 +1,8 @@
 package com.datn.be.elasticsearch.controller;
 
+import com.datn.be.elasticsearch.model.response.aggregation.DateHistogramAggResponse;
+import com.datn.be.elasticsearch.model.response.aggregation.TermAggResponse;
+import com.datn.be.elasticsearch.service.QueryAggregationEsService;
 import com.datn.be.elasticsearch.service.QuerySearchEsService;
 import com.datn.be.model.dto.request.SalesRecordRequest;
 import com.datn.be.model.dto.response.SalesRecordResponse;
@@ -19,6 +22,7 @@ import java.util.List;
 public class SalesRecordESController {
     private final SalesRecordESService salesRecordESService;
     private final QuerySearchEsService querySearchEsService;
+    private final QueryAggregationEsService queryAggregationEsService;
 
     // Tạo mới SalesRecord
     @PostMapping
@@ -162,5 +166,18 @@ public class SalesRecordESController {
     ) throws IOException {
         return querySearchEsService.multiMatchQuery(value, fields);
     }
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+    @GetMapping("/term-agg")
+    public ResponseEntity<List<TermAggResponse>> termAgg(
+            @RequestParam(value = "field") String field
+    ) throws IOException {
+        return queryAggregationEsService.termAgg(field);
+    }
 
+    @GetMapping("/date-histogram-agg")
+    public ResponseEntity<DateHistogramAggResponse> dateHistogramAgg(
+            @RequestParam(value = "date") String date
+    ) throws IOException {
+        return queryAggregationEsService.dateHistogramAgg(date);
+    }
 }
