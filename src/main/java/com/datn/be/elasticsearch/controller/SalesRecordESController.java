@@ -1,7 +1,6 @@
 package com.datn.be.elasticsearch.controller;
 
-import com.datn.be.elasticsearch.model.response.aggregation.DateHistogramAggResponse;
-import com.datn.be.elasticsearch.model.response.aggregation.TermAggResponse;
+import com.datn.be.elasticsearch.model.response.aggregation.*;
 import com.datn.be.elasticsearch.service.QueryAggregationEsService;
 import com.datn.be.elasticsearch.service.QuerySearchEsService;
 import com.datn.be.model.dto.request.SalesRecordRequest;
@@ -13,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -167,17 +167,58 @@ public class SalesRecordESController {
         return querySearchEsService.multiMatchQuery(value, fields);
     }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-    @GetMapping("/term-agg")
+    @PostMapping("/term-agg")
     public ResponseEntity<List<TermAggResponse>> termAgg(
             @RequestParam(value = "field") String field
     ) throws IOException {
         return queryAggregationEsService.termAgg(field);
     }
 
-    @GetMapping("/date-histogram-agg")
+    @PostMapping("/date-histogram-agg")
     public ResponseEntity<DateHistogramAggResponse> dateHistogramAgg(
             @RequestParam(value = "date") String date
-    ) throws IOException {
+    ) throws IOException, ParseException {
         return queryAggregationEsService.dateHistogramAgg(date);
+    }
+
+    @PostMapping("/range-agg")
+    public ResponseEntity<List<RangeAggResponse>> rangeAgg(
+            @RequestParam(value = "field") String field,
+            @RequestParam(value = "from") Double fromValue,
+            @RequestParam(value = "to") Double toValue
+    ) throws IOException {
+        return queryAggregationEsService.rangeAgg(field, fromValue, toValue);
+    }
+
+    @PostMapping("/avg-agg")
+    public ResponseEntity<List<AvgAggResponse>> avgAgg(
+            @RequestParam(value = "field") String field,
+            @RequestParam(value = "yearMonth") String yearMonth
+    ) throws IOException {
+        return queryAggregationEsService.avgAgg(field, yearMonth);
+    }
+
+    @PostMapping("/sum-agg")
+    public ResponseEntity<List<SumAggResponse>> sumAgg(
+            @RequestParam(value = "field") String field,
+            @RequestParam(value = "yearMonth") String yearMonth
+    ) throws IOException {
+        return queryAggregationEsService.sumAgg(field, yearMonth);
+    }
+
+    @PostMapping("/min-agg")
+    public ResponseEntity<List<MinMaxAggResponse>> minAgg(
+            @RequestParam(value = "field") String field,
+            @RequestParam(value = "yearMonth") String yearMonth
+    ) throws IOException {
+        return queryAggregationEsService.minAgg(field, yearMonth);
+    }
+
+    @PostMapping("/max-agg")
+    public ResponseEntity<List<MinMaxAggResponse>> maxAgg(
+            @RequestParam(value = "field") String field,
+            @RequestParam(value = "yearMonth") String yearMonth
+    ) throws IOException {
+        return queryAggregationEsService.maxAgg(field, yearMonth);
     }
 }
