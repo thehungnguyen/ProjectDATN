@@ -14,7 +14,7 @@ import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.histogram.ParsedDateHistogram;
 import org.elasticsearch.search.aggregations.bucket.range.ParsedRange;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
-import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.metrics.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -63,11 +63,11 @@ public class QueryAggregationEsService {
         // Thực hiện truy vấn và lấy kết quả aggregation
         SearchResponse searchResponse = executeAggregationQuery(searchSourceBuilder);
 
-        Terms terms = searchResponse.getAggregations().get(TERM_AGG);
+        ParsedTerms termsAgg = searchResponse.getAggregations().get(TERM_AGG);
 
         // Chuyển đổi kết quả aggregation thành danh sách TermAggResponse
         List<TermAggResponse> responseList = new ArrayList<>();
-        for (Terms.Bucket bucket : terms.getBuckets()) {
+        for (Terms.Bucket bucket : termsAgg.getBuckets()) {
             responseList.add(TermAggResponse.builder()
                     .key(bucket.getKeyAsString())
                     .count(String.valueOf(bucket.getDocCount()))
@@ -117,7 +117,7 @@ public class QueryAggregationEsService {
         String formatDate = formatDate(bucket.getKeyAsString());
 
         // Tạo danh sách các mặt hàng trong ngày đó
-        Terms itemTypeAgg = bucket.getAggregations().get("itemTypeAgg");
+        ParsedTerms itemTypeAgg = bucket.getAggregations().get("itemTypeAgg");
         List<String> itemTypes = new ArrayList<>();
         for (Terms.Bucket itemTypeBucket : itemTypeAgg.getBuckets()) {
             itemTypes.add(itemTypeBucket.getKeyAsString()); // Chỉ lấy tên mặt hàng
@@ -188,7 +188,7 @@ public class QueryAggregationEsService {
 
         SearchResponse searchResponse = executeAggregationQuery(searchSourceBuilder);
 
-        ParsedStringTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
+        ParsedTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
 
         List<AvgAggResponse> responseList = new ArrayList<>();
         for (Terms.Bucket bucket : itemTypeAgg.getBuckets()) {
@@ -228,7 +228,7 @@ public class QueryAggregationEsService {
 
         SearchResponse searchResponse = executeAggregationQuery(searchSourceBuilder);
 
-        ParsedStringTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
+        ParsedTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
 
         List<SumAggResponse> responseList = new ArrayList<>();
         for (Terms.Bucket bucket : itemTypeAgg.getBuckets()) {
@@ -272,7 +272,7 @@ public class QueryAggregationEsService {
 
         SearchResponse searchResponse = executeAggregationQuery(searchSourceBuilder);
 
-        ParsedStringTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
+        ParsedTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
 
         List<MinMaxAggResponse> responseList = new ArrayList<>();
         for (Terms.Bucket bucket : itemTypeAgg.getBuckets()) {
@@ -325,7 +325,7 @@ public class QueryAggregationEsService {
 
         SearchResponse searchResponse = executeAggregationQuery(searchSourceBuilder);
 
-        ParsedStringTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
+        ParsedTerms itemTypeAgg = searchResponse.getAggregations().get("itemTypeAgg");
 
         List<MinMaxAggResponse> responseList = new ArrayList<>();
         for (Terms.Bucket bucket : itemTypeAgg.getBuckets()) {
@@ -350,6 +350,24 @@ public class QueryAggregationEsService {
     }
 
     // Cardinality Agg
+    public ResponseEntity<CardinalityAggResponse> cardinalityAgg(String field) throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
+
+        searchSourceBuilder. aggregation(AggregationBuilders.cardinality(CARDINALITY_AGG)
+                .field(field + ".keyword")
+        );
+
+        SearchResponse searchResponse = executeAggregationQuery(searchSourceBuilder);
+
+        ParsedCardinality cardinalityAgg = searchResponse.getAggregations().get(CARDINALITY_AGG);
+
+        CardinalityAggResponse response = CardinalityAggResponse.builder()
+                .field(field)
+                .count(cardinalityAgg.getValue())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
     private SearchResponse executeAggregationQuery(SearchSourceBuilder searchSourceBuilder) throws IOException {
         SearchRequest searchRequest = new SearchRequest(INDEX_NAME);

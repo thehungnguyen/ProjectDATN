@@ -221,4 +221,11 @@ public class SalesRecordESController {
     ) throws IOException {
         return queryAggregationEsService.maxAgg(field, yearMonth);
     }
+
+    @PostMapping("/cardinality-agg")
+    public ResponseEntity<CardinalityAggResponse> maxAgg(
+            @RequestParam(value = "field") String field
+    ) throws IOException {
+        return queryAggregationEsService.cardinalityAgg(field);
+    }
 }
