@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    container_name: elasticsearch_datn
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+
+  logstash:
+    image: logstash:7.17.9
+    container_name: logstash_datn
+    volumes:
+      - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf # Cấu hình Logstash
+      - ./data:/usr/share/logstash/data # Thư mục chứa file CSV
+    ports:
+      - "5044:5044"  # Logstash lắng nghe cổng 5044 từ bên ngoài
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: kibana:7.17.9
+    container_name: kibana_datn
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch_datn:9200
+    ports:
+      - "5601:5601"  # Kibana lắng nghe cổng 5602 từ bên ngoài
+    depends_on:
+      - elasticsearch
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_datn
+    environment:
+      - MONGO_INITDB_DATABASE=MongoDB-DATN
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+    ports:
+      - "27017:27017"
